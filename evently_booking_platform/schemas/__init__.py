@@ -1,0 +1,123 @@
+"""Pydantic schemas for request/response validation."""
+
+from .auth import (
+    UserRegistration,
+    UserLogin,
+    UserProfile,
+    UserProfileUpdate,
+    PasswordChange,
+    TokenResponse
+)
+from .event import (
+    EventBase,
+    EventCreate,
+    EventUpdate,
+    EventResponse,
+    EventListResponse,
+    EventFilters
+)
+from .seat import (
+    SeatBase,
+    SeatCreate,
+    SeatUpdate,
+    SeatResponse,
+    SeatMapResponse,
+    SeatAvailabilityResponse,
+    SeatHoldRequest,
+    SeatHoldResponse,
+    SeatBookingRequest,
+    SeatPricingTierResponse,
+    SeatPricingUpdateRequest,
+    BulkSeatCreateRequest,
+    SeatStatistics
+)
+from .booking import (
+    BookingCreateRequest,
+    BookingConfirmRequest,
+    BookingCancelRequest,
+    BookingResponse,
+    BookingListResponse,
+    CreateBookingResponse,
+    ConfirmBookingResponse,
+    CancelBookingResponse,
+    BookingFilterRequest,
+    BookingErrorResponse,
+    BookingStatsResponse
+)
+from .waitlist import (
+    WaitlistBase,
+    WaitlistCreate,
+    WaitlistUpdate,
+    WaitlistResponse,
+    WaitlistWithEvent,
+    WaitlistWithUser,
+    WaitlistNotificationResponse,
+    WaitlistStatsResponse
+)
+from .analytics import (
+    BookingMetrics,
+    CapacityUtilization,
+    PopularEvent,
+    DailyBookingStats,
+    CancellationAnalytics,
+    RevenueAnalytics,
+    EventPerformanceMetrics,
+    AnalyticsDashboard,
+    AnalyticsFilters
+)
+
+__all__ = [
+    "UserRegistration",
+    "UserLogin", 
+    "UserProfile",
+    "UserProfileUpdate",
+    "PasswordChange",
+    "TokenResponse",
+    "EventBase",
+    "EventCreate",
+    "EventUpdate",
+    "EventResponse",
+    "EventListResponse",
+    "EventFilters",
+    "SeatBase",
+    "SeatCreate",
+    "SeatUpdate",
+    "SeatResponse",
+    "SeatMapResponse",
+    "SeatAvailabilityResponse",
+    "SeatHoldRequest",
+    "SeatHoldResponse",
+    "SeatBookingRequest",
+    "SeatPricingTierResponse",
+    "SeatPricingUpdateRequest",
+    "BulkSeatCreateRequest",
+    "SeatStatistics",
+    "BookingCreateRequest",
+    "BookingConfirmRequest",
+    "BookingCancelRequest",
+    "BookingResponse",
+    "BookingListResponse",
+    "CreateBookingResponse",
+    "ConfirmBookingResponse",
+    "CancelBookingResponse",
+    "BookingFilterRequest",
+    "BookingErrorResponse",
+    "BookingStatsResponse",
+    "WaitlistBase",
+    "WaitlistCreate",
+    "WaitlistUpdate",
+    "WaitlistResponse",
+    "WaitlistWithEvent",
+    "WaitlistWithUser",
+    "WaitlistNotificationResponse",
+    "WaitlistStatsResponse",
+    "BookingMetrics",
+    "CapacityUtilization",
+    "PopularEvent",
+    "DailyBookingStats",
+    "CancellationAnalytics",
+    "RevenueAnalytics",
+    "EventPerformanceMetrics",
+    "AnalyticsDashboard",
+    "AnalyticsFilters"
+]

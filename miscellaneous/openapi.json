@@ -1,0 +1,5190 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Evently Booking Platform API",
+    "description": "\n    ## Evently Booking Platform\n    \n    A scalable event booking platform designed to handle high-concurrency ticket booking scenarios.\n    \n    ### Key Features\n    \n    * **Event Management**: Create, update, and manage events with detailed information\n    * **Ticket Booking**: High-performance booking system with concurrency control\n    * **Seat Selection**: Support for venue layouts with specific seat selection\n    * **Waitlist Management**: Automatic waitlist handling for sold-out events\n    * **User Authentication**: Secure JWT-based authentication system\n    * **Admin Analytics**: Comprehensive booking analytics and reporting\n    * **Real-time Notifications**: Email notifications for booking updates\n    \n    ### Authentication\n    \n    This API uses JWT (JSON Web Token) authentication. To access protected endpoints:\n    \n    1. Register a new account or login with existing credentials\n    2. Use the returned access token in the Authorization header\n    3. Format: `Authorization: Bearer <your_access_token>`\n    \n    ### Rate Limiting\n    \n    API requests are rate limited to ensure fair usage:\n    - Default: 100 requests per minute\n    - Burst: 20 requests per second\n    \n    ### Error Handling\n    \n    The API returns structured error responses with detailed information:\n    \n    ```json\n    {\n      \"error\": {\n        \"code\": \"ERROR_CODE\",\n        \"message\": \"Human readable error message\",\n        \"details\": {\n          \"field\": \"Additional error context\"\n        },\n        \"suggestions\": [\"Helpful suggestions\"]\n      }\n    }\n    ```\n    \n    ### Concurrency Safety\n    \n    The platform is designed to handle high-concurrency booking scenarios:\n    - Optimistic locking prevents overselling\n    - Database transactions ensure data consistency\n    - Redis-based distributed locking for seat selection\n    ",
+    "contact": {
+      "name": "Evently Support",
+      "email": "droplakshya@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": ["authentication"],
+        "summary": "Register User",
+        "description": "Register a new user.\n\nArgs:\n    user_data: User registration data\n    db: Database session\n    \nReturns:\n    Token response with user information\n    \nRaises:\n    HTTPException: If email already exists or validation fails",
+        "operationId": "register_user_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegistration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": ["authentication"],
+        "summary": "Login User",
+        "description": "Authenticate user and return access token.\n\nArgs:\n    login_data: User login credentials\n    db: Database session\n    \nReturns:\n    Token response with user information\n    \nRaises:\n    HTTPException: If credentials are invalid",
+        "operationId": "login_user_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": ["authentication"],
+        "summary": "Get Current User Profile",
+        "description": "Get current user's profile.\n\nArgs:\n    current_user: The authenticated user\n    \nReturns:\n    User profile information",
+        "operationId": "get_current_user_profile_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["authentication"],
+        "summary": "Update Current User Profile",
+        "description": "Update current user's profile.\n\nArgs:\n    update_data: Profile update data\n    current_user: The authenticated user\n    db: Database session\n    \nReturns:\n    Updated user profile\n    \nRaises:\n    HTTPException: If update fails",
+        "operationId": "update_current_user_profile_api_v1_auth_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": ["authentication"],
+        "summary": "Change Password",
+        "description": "Change current user's password.\n\nArgs:\n    password_data: Password change data\n    current_user: The authenticated user\n    db: Database session\n    \nReturns:\n    Success message\n    \nRaises:\n    HTTPException: If current password is incorrect",
+        "operationId": "change_password_api_v1_auth_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Change Password Api V1 Auth Change Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "get": {
+        "tags": ["user-management"],
+        "summary": "Get User By Id",
+        "description": "Get a user by ID (admin only).\n\nArgs:\n    user_id: The user ID\n    db: Database session\n    _: Admin user (for authorization)\n    \nReturns:\n    User profile information\n    \nRaises:\n    HTTPException: If user not found",
+        "operationId": "get_user_by_id_api_v1_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/deactivate": {
+      "post": {
+        "tags": ["user-management"],
+        "summary": "Deactivate User",
+        "description": "Deactivate a user account (admin only).\n\nArgs:\n    user_id: The user ID\n    db: Database session\n    _: Admin user (for authorization)\n    \nReturns:\n    Success message\n    \nRaises:\n    HTTPException: If user not found",
+        "operationId": "deactivate_user_api_v1_users__user_id__deactivate_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Deactivate User Api V1 Users  User Id  Deactivate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/activate": {
+      "post": {
+        "tags": ["user-management"],
+        "summary": "Activate User",
+        "description": "Activate a user account (admin only).\n\nArgs:\n    user_id: The user ID\n    db: Database session\n    _: Admin user (for authorization)\n    \nReturns:\n    Success message\n    \nRaises:\n    HTTPException: If user not found",
+        "operationId": "activate_user_api_v1_users__user_id__activate_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Activate User Api V1 Users  User Id  Activate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/": {
+      "get": {
+        "tags": ["events"],
+        "summary": "List Events",
+        "description": "Get list of events with filtering and pagination.\n\nThis endpoint supports various filtering options:\n- Search by name, description, or venue\n- Filter by venue, date range, price range\n- Show only available or active events",
+        "operationId": "list_events_api_v1_events__get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size",
+              "default": 20,
+              "title": "Size"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Search in event name, description, or venue",
+              "title": "Search"
+            },
+            "description": "Search in event name, description, or venue"
+          },
+          {
+            "name": "venue",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Filter by venue",
+              "title": "Venue"
+            },
+            "description": "Filter by venue"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Filter events from this date (ISO format)",
+              "title": "Date From"
+            },
+            "description": "Filter events from this date (ISO format)"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Filter events until this date (ISO format)",
+              "title": "Date To"
+            },
+            "description": "Filter events until this date (ISO format)"
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Minimum ticket price",
+              "title": "Min Price"
+            },
+            "description": "Minimum ticket price"
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Maximum ticket price",
+              "title": "Max Price"
+            },
+            "description": "Maximum ticket price"
+          },
+          {
+            "name": "available_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Show only events with available capacity",
+              "default": true,
+              "title": "Available Only"
+            },
+            "description": "Show only events with available capacity"
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Show only active events",
+              "default": true,
+              "title": "Active Only"
+            },
+            "description": "Show only active events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["events"],
+        "summary": "Create Event",
+        "description": "Create a new event.\n\nOnly admin users can create events.",
+        "operationId": "create_event_api_v1_events__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{event_id}": {
+      "get": {
+        "tags": ["events"],
+        "summary": "Get Event",
+        "description": "Get event details by ID.",
+        "operationId": "get_event_api_v1_events__event_id__get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["events"],
+        "summary": "Update Event",
+        "description": "Update an existing event.\n\nOnly admin users can update events.",
+        "operationId": "update_event_api_v1_events__event_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["events"],
+        "summary": "Delete Event",
+        "description": "Delete an event.\n\nOnly admin users can delete events.\nEvents with confirmed bookings cannot be deleted.",
+        "operationId": "delete_event_api_v1_events__event_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/search/{search_term}": {
+      "get": {
+        "tags": ["events"],
+        "summary": "Search Events",
+        "description": "Search events by name, description, or venue.",
+        "operationId": "search_events_api_v1_events_search__search_term__get",
+        "parameters": [
+          {
+            "name": "search_term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Search Term"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Maximum number of results",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Maximum number of results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response Search Events Api V1 Events Search  Search Term  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/popular/list": {
+      "get": {
+        "tags": ["events"],
+        "summary": "Get Popular Events",
+        "description": "Get popular events based on booking count.",
+        "operationId": "get_popular_events_api_v1_events_popular_list_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Maximum number of results",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Maximum number of results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response Get Popular Events Api V1 Events Popular List Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/upcoming/list": {
+      "get": {
+        "tags": ["events"],
+        "summary": "Get Upcoming Events",
+        "description": "Get upcoming events with available capacity.",
+        "operationId": "get_upcoming_events_api_v1_events_upcoming_list_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Maximum number of results",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Maximum number of results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response Get Upcoming Events Api V1 Events Upcoming List Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{event_id}/map": {
+      "get": {
+        "tags": ["seats"],
+        "summary": "Get Seat Map",
+        "description": "Get the seat map for an event.\n\nArgs:\n    event_id: Event UUID\n    db: Database session\n    \nReturns:\n    Seat map with availability information",
+        "operationId": "get_seat_map_api_v1_seats__event_id__map_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatMapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/check-availability": {
+      "post": {
+        "tags": ["seats"],
+        "summary": "Check Seat Availability",
+        "description": "Check availability of specific seats.\n\nArgs:\n    seat_ids: List of seat UUIDs to check\n    db: Database session\n    \nReturns:\n    Seat availability information",
+        "operationId": "check_seat_availability_api_v1_seats_check_availability_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "title": "Seat Ids"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatAvailabilityResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/hold": {
+      "post": {
+        "tags": ["seats"],
+        "summary": "Hold Seats",
+        "description": "Hold seats temporarily for booking.\n\nArgs:\n    hold_request: Seat hold request data\n    current_user: Current authenticated user\n    db: Database session\n    \nReturns:\n    Seat hold confirmation with expiration time",
+        "operationId": "hold_seats_api_v1_seats_hold_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeatHoldRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatHoldResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/seats/release-hold": {
+      "post": {
+        "tags": ["seats"],
+        "summary": "Release Held Seats",
+        "description": "Release held seats back to available status.\n\nArgs:\n    seat_ids: List of seat UUIDs to release\n    current_user: Current authenticated user\n    db: Database session\n    \nReturns:\n    Success confirmation",
+        "operationId": "release_held_seats_api_v1_seats_release_hold_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "title": "Seat Ids"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/seats/{event_id}/pricing": {
+      "get": {
+        "tags": ["seats"],
+        "summary": "Get Seat Pricing Tiers",
+        "description": "Get seat pricing information organized by tiers.\n\nArgs:\n    event_id: Event UUID\n    db: Database session\n    \nReturns:\n    Pricing tier information",
+        "operationId": "get_seat_pricing_tiers_api_v1_seats__event_id__pricing_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatPricingTierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["seats"],
+        "summary": "Update Seat Pricing",
+        "description": "Update pricing for all seats in a specific section (Admin only).\n\nArgs:\n    event_id: Event UUID\n    pricing_update: Pricing update request\n    current_user: Current authenticated admin user\n    db: Database session\n    \nReturns:\n    Update confirmation with count of affected seats",
+        "operationId": "update_seat_pricing_api_v1_seats__event_id__pricing_put",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeatPricingUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Seat Pricing Api V1 Seats  Event Id  Pricing Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{event_id}/bulk-create": {
+      "post": {
+        "tags": ["seats"],
+        "summary": "Create Seats Bulk",
+        "description": "Create multiple seats for an event (Admin only).\n\nArgs:\n    event_id: Event UUID\n    bulk_request: Bulk seat creation request\n    current_user: Current authenticated admin user\n    db: Database session\n    \nReturns:\n    List of created seats",
+        "operationId": "create_seats_bulk_api_v1_seats__event_id__bulk_create_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSeatCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeatResponse"
+                  },
+                  "title": "Response Create Seats Bulk Api V1 Seats  Event Id  Bulk Create Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/cleanup-expired-holds": {
+      "post": {
+        "tags": ["seats"],
+        "summary": "Cleanup Expired Holds",
+        "description": "Clean up expired seat holds (Admin only).\n\nArgs:\n    current_user: Current authenticated admin user\n    db: Database session\n    \nReturns:\n    Cleanup results",
+        "operationId": "cleanup_expired_holds_api_v1_seats_cleanup_expired_holds_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Cleanup Expired Holds Api V1 Seats Cleanup Expired Holds Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{event_id}/statistics": {
+      "get": {
+        "tags": ["seats"],
+        "summary": "Get Seat Statistics",
+        "description": "Get detailed seat statistics for an event (Admin only).\n\nArgs:\n    event_id: Event UUID\n    current_user: Current authenticated admin user\n    db: Database session\n    \nReturns:\n    Detailed seat statistics",
+        "operationId": "get_seat_statistics_api_v1_seats__event_id__statistics_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatStatistics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/": {
+      "post": {
+        "tags": ["bookings"],
+        "summary": "Create Booking",
+        "description": "Create a new booking for an event.\n\nThis endpoint handles concurrent booking requests with optimistic locking\nto prevent overselling and ensure data consistency.",
+        "operationId": "create_booking_api_v1_api_v1_bookings__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get User Bookings",
+        "description": "Get bookings for the current user.\n\nReturns a paginated list of bookings with optional status filtering.",
+        "operationId": "get_user_bookings_api_v1_api_v1_bookings__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BookingStatus"
+                },
+                "title": "Status"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/{booking_id}/confirm": {
+      "post": {
+        "tags": ["bookings"],
+        "summary": "Confirm Booking",
+        "description": "Confirm a pending booking after payment processing.\n\nThis endpoint should be called after successful payment processing\nto finalize the booking and remove the expiration timeout.",
+        "operationId": "confirm_booking_api_v1_api_v1_bookings__booking_id__confirm_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmBookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/{booking_id}": {
+      "delete": {
+        "tags": ["bookings"],
+        "summary": "Cancel Booking",
+        "description": "Cancel a booking and release seats back to inventory.\n\nThis endpoint cancels a booking and immediately makes the seats\navailable for other users. Waitlisted users will be notified.",
+        "operationId": "cancel_booking_api_v1_api_v1_bookings__booking_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingCancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelBookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get Booking",
+        "description": "Get details of a specific booking.\n\nReturns comprehensive booking information including event details\nand seat information if applicable.",
+        "operationId": "get_booking_api_v1_api_v1_bookings__booking_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/search": {
+      "post": {
+        "tags": ["bookings"],
+        "summary": "Search User Bookings",
+        "description": "Search and filter user bookings with advanced criteria.\n\nSupports searching by event name, venue, status, date range, and amount range.",
+        "operationId": "search_user_bookings_api_v1_api_v1_bookings_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/api/v1/bookings/dashboard": {
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get User Dashboard",
+        "description": "Get user booking dashboard with statistics and recent bookings.\n\nReturns booking statistics and categorized recent bookings for dashboard display.",
+        "operationId": "get_user_dashboard_api_v1_api_v1_bookings_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingDashboardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/api/v1/bookings/categories": {
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get Categorized Bookings",
+        "description": "Get user bookings categorized by status and timing.\n\nReturns bookings organized into upcoming, past, cancelled, and pending categories.",
+        "operationId": "get_categorized_bookings_api_v1_api_v1_bookings_categories_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCategoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/{booking_id}/history": {
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get Booking History",
+        "description": "Get the complete audit trail for a booking.\n\nReturns all historical actions performed on the booking.",
+        "operationId": "get_booking_history_api_v1_api_v1_bookings__booking_id__history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingHistoryListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/{booking_id}/receipt": {
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get Booking Receipt",
+        "description": "Generate and return a receipt for a booking.\n\nReturns detailed receipt information including line items and customer details.",
+        "operationId": "get_booking_receipt_api_v1_api_v1_bookings__booking_id__receipt_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingReceiptResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/admin/expired": {
+      "get": {
+        "tags": ["bookings"],
+        "summary": "Get Expired Bookings",
+        "description": "Get expired bookings that need processing (Admin only).\n\nThis endpoint is used by background tasks to identify and process\nexpired bookings that need to be cleaned up.",
+        "operationId": "get_expired_bookings_api_v1_api_v1_bookings_admin_expired_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingResponse"
+                  },
+                  "title": "Response Get Expired Bookings Api V1 Api V1 Bookings Admin Expired Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api/v1/bookings/admin/{booking_id}/expire": {
+      "post": {
+        "tags": ["bookings"],
+        "summary": "Expire Booking",
+        "description": "Manually expire a booking (Admin only).\n\nThis endpoint allows administrators to manually expire bookings\nand is also used by background tasks for automated expiration.",
+        "operationId": "expire_booking_api_v1_api_v1_bookings_admin__booking_id__expire_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Booking Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/": {
+      "post": {
+        "tags": ["waitlist"],
+        "summary": "Join Waitlist",
+        "description": "Join the waitlist for a sold-out event.\n\n- **event_id**: ID of the event to join waitlist for\n- **requested_quantity**: Number of tickets requested",
+        "operationId": "join_waitlist_api_v1_waitlist__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaitlistCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaitlistResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/waitlist/{event_id}": {
+      "delete": {
+        "tags": ["waitlist"],
+        "summary": "Leave Waitlist",
+        "description": "Leave the waitlist for an event.\n\n- **event_id**: ID of the event to leave waitlist for",
+        "operationId": "leave_waitlist_api_v1_waitlist__event_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/my-waitlist": {
+      "get": {
+        "tags": ["waitlist"],
+        "summary": "Get My Waitlist Entries",
+        "description": "Get current user's waitlist entries.\n\n- **status**: Optional filter by waitlist status\n- **limit**: Maximum number of entries to return (1-100)\n- **offset**: Number of entries to skip for pagination",
+        "operationId": "get_my_waitlist_entries_api_v1_waitlist_my_waitlist_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaitlistStatus"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by waitlist status",
+              "title": "Status"
+            },
+            "description": "Filter by waitlist status"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum number of entries to return",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Maximum number of entries to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of entries to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of entries to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaitlistResponse"
+                  },
+                  "title": "Response Get My Waitlist Entries Api V1 Waitlist My Waitlist Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/position/{event_id}": {
+      "get": {
+        "tags": ["waitlist"],
+        "summary": "Get Waitlist Position",
+        "description": "Get current user's position in the waitlist for an event.\n\n- **event_id**: ID of the event to check position for",
+        "operationId": "get_waitlist_position_api_v1_waitlist_position__event_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/admin/event/{event_id}": {
+      "get": {
+        "tags": ["waitlist"],
+        "summary": "Get Event Waitlist",
+        "description": "Get waitlist entries for a specific event (admin only).\n\n- **event_id**: ID of the event\n- **status**: Optional filter by waitlist status\n- **limit**: Maximum number of entries to return (1-500)\n- **offset**: Number of entries to skip for pagination",
+        "operationId": "get_event_waitlist_api_v1_waitlist_admin_event__event_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaitlistStatus"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by waitlist status",
+              "title": "Status"
+            },
+            "description": "Filter by waitlist status"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Maximum number of entries to return",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Maximum number of entries to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of entries to skip",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of entries to skip"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaitlistResponse"
+                  },
+                  "title": "Response Get Event Waitlist Api V1 Waitlist Admin Event  Event Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/admin/stats/{event_id}": {
+      "get": {
+        "tags": ["waitlist"],
+        "summary": "Get Waitlist Stats",
+        "description": "Get waitlist statistics for an event (admin only).\n\n- **event_id**: ID of the event",
+        "operationId": "get_waitlist_stats_api_v1_waitlist_admin_stats__event_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaitlistStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waitlist/admin/notify/{event_id}": {
+      "post": {
+        "tags": ["waitlist"],
+        "summary": "Notify Waitlist",
+        "description": "Manually notify waitlisted users about available seats (admin only).\n\n- **event_id**: ID of the event\n- **available_quantity**: Number of seats that became available",
+        "operationId": "notify_waitlist_api_v1_waitlist_admin_notify__event_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "available_quantity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "description": "Number of available seats",
+              "title": "Available Quantity"
+            },
+            "description": "Number of available seats"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/dashboard": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Analytics Dashboard",
+        "description": "Get comprehensive analytics dashboard data.\n\nRequires admin privileges.",
+        "operationId": "get_analytics_dashboard_api_v1_admin_analytics_dashboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsDashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/bookings": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Booking Metrics",
+        "description": "Get overall booking metrics including total bookings, status breakdown, and revenue.\n\nRequires admin privileges.",
+        "operationId": "get_booking_metrics_api_v1_admin_analytics_bookings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingMetrics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/capacity": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Capacity Utilization",
+        "description": "Get capacity utilization metrics for all events.\n\nRequires admin privileges.",
+        "operationId": "get_capacity_utilization_api_v1_admin_analytics_capacity_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CapacityUtilization"
+                  },
+                  "title": "Response Get Capacity Utilization Api V1 Admin Analytics Capacity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/popular-events": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Popular Events",
+        "description": "Get popular events ranking based on bookings and revenue.\n\nRequires admin privileges.",
+        "operationId": "get_popular_events_api_v1_admin_analytics_popular_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Number of events to return",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Number of events to return"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PopularEvent"
+                  },
+                  "title": "Response Get Popular Events Api V1 Admin Analytics Popular Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/daily-stats": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Daily Booking Stats",
+        "description": "Get daily booking statistics and trends.\n\nRequires admin privileges.",
+        "operationId": "get_daily_booking_stats_api_v1_admin_analytics_daily_stats_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of days to return",
+              "default": 30,
+              "title": "Limit"
+            },
+            "description": "Number of days to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyBookingStats"
+                  },
+                  "title": "Response Get Daily Booking Stats Api V1 Admin Analytics Daily Stats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/cancellations": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Cancellation Analytics",
+        "description": "Get cancellation rate analytics and patterns.\n\nRequires admin privileges.",
+        "operationId": "get_cancellation_analytics_api_v1_admin_analytics_cancellations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancellationAnalytics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/revenue": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Revenue Analytics",
+        "description": "Get revenue analytics including total revenue, confirmed revenue, and averages.\n\nRequires admin privileges.",
+        "operationId": "get_revenue_analytics_api_v1_admin_analytics_revenue_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueAnalytics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/analytics/events/{event_id}/performance": {
+      "get": {
+        "tags": ["admin", "analytics"],
+        "summary": "Get Event Performance",
+        "description": "Get detailed performance metrics for a specific event.\n\nRequires admin privileges.",
+        "operationId": "get_event_performance_api_v1_admin_analytics_events__event_id__performance_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date for filtering",
+              "title": "Start Date"
+            },
+            "description": "Start date for filtering"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date for filtering",
+              "title": "End Date"
+            },
+            "description": "End date for filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPerformanceMetrics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Root",
+        "description": "Root endpoint for API information.\n\nReturns basic information about the API including version and status.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Health Check",
+        "description": "Basic health check endpoint.\n\nReturns the basic health status of the service.\nUse this endpoint for simple uptime monitoring.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/detailed": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Detailed Health Check",
+        "description": "Detailed health check with service dependencies.\n\nReturns comprehensive health information including:\n- Database connectivity\n- Redis cache status\n- External service dependencies\n- System resource usage",
+        "operationId": "detailed_health_check_health_detailed_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Get Metrics",
+        "description": "Get application metrics and performance statistics.\n\nReturns:\n- Circuit breaker statistics\n- Middleware performance metrics\n- Request/response statistics\n- System performance indicators",
+        "operationId": "get_metrics_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalyticsDashboard": {
+        "properties": {
+          "booking_metrics": {
+            "$ref": "#/components/schemas/BookingMetrics",
+            "description": "Overall booking metrics"
+          },
+          "revenue_analytics": {
+            "$ref": "#/components/schemas/RevenueAnalytics",
+            "description": "Revenue analytics"
+          },
+          "cancellation_analytics": {
+            "$ref": "#/components/schemas/CancellationAnalytics",
+            "description": "Cancellation analytics"
+          },
+          "popular_events": {
+            "items": {
+              "$ref": "#/components/schemas/PopularEvent"
+            },
+            "type": "array",
+            "title": "Popular Events",
+            "description": "Top 10 popular events"
+          },
+          "capacity_utilization": {
+            "items": {
+              "$ref": "#/components/schemas/CapacityUtilization"
+            },
+            "type": "array",
+            "title": "Capacity Utilization",
+            "description": "Capacity utilization by event"
+          },
+          "daily_stats": {
+            "items": {
+              "$ref": "#/components/schemas/DailyBookingStats"
+            },
+            "type": "array",
+            "title": "Daily Stats",
+            "description": "Daily booking statistics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "booking_metrics",
+          "revenue_analytics",
+          "cancellation_analytics",
+          "popular_events",
+          "capacity_utilization",
+          "daily_stats"
+        ],
+        "title": "AnalyticsDashboard",
+        "description": "Schema for comprehensive analytics dashboard."
+      },
+      "BookingAction": {
+        "type": "string",
+        "enum": ["created", "confirmed", "cancelled", "expired", "modified"],
+        "title": "BookingAction",
+        "description": "Enumeration for booking actions."
+      },
+      "BookingCancelRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Optional cancellation reason"
+          }
+        },
+        "type": "object",
+        "title": "BookingCancelRequest",
+        "description": "Schema for cancelling a booking."
+      },
+      "BookingCategoryResponse": {
+        "properties": {
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Upcoming"
+          },
+          "past": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Past"
+          },
+          "cancelled": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Cancelled"
+          },
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": ["upcoming", "past", "cancelled", "pending"],
+        "title": "BookingCategoryResponse",
+        "description": "Schema for categorized booking responses."
+      },
+      "BookingConfirmRequest": {
+        "properties": {
+          "payment_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Reference",
+            "description": "Payment reference from payment processor"
+          }
+        },
+        "type": "object",
+        "title": "BookingConfirmRequest",
+        "description": "Schema for confirming a booking."
+      },
+      "BookingCreateRequest": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id",
+            "description": "ID of the event to book"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Number of tickets to book"
+          },
+          "seat_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seat Ids",
+            "description": "Optional list of specific seat IDs"
+          }
+        },
+        "type": "object",
+        "required": ["event_id", "quantity"],
+        "title": "BookingCreateRequest",
+        "description": "Schema for creating a new booking."
+      },
+      "BookingDashboardResponse": {
+        "properties": {
+          "stats": {
+            "$ref": "#/components/schemas/BookingDashboardStats"
+          },
+          "upcoming_bookings": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Upcoming Bookings"
+          },
+          "recent_bookings": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Recent Bookings"
+          }
+        },
+        "type": "object",
+        "required": ["stats", "upcoming_bookings", "recent_bookings"],
+        "title": "BookingDashboardResponse",
+        "description": "Schema for user booking dashboard."
+      },
+      "BookingDashboardStats": {
+        "properties": {
+          "total_bookings": {
+            "type": "integer",
+            "title": "Total Bookings"
+          },
+          "upcoming_events": {
+            "type": "integer",
+            "title": "Upcoming Events"
+          },
+          "past_events": {
+            "type": "integer",
+            "title": "Past Events"
+          },
+          "cancelled_bookings": {
+            "type": "integer",
+            "title": "Cancelled Bookings"
+          },
+          "total_spent": {
+            "type": "string",
+            "title": "Total Spent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_bookings",
+          "upcoming_events",
+          "past_events",
+          "cancelled_bookings",
+          "total_spent"
+        ],
+        "title": "BookingDashboardStats",
+        "description": "Schema for user booking dashboard statistics."
+      },
+      "BookingHistoryListResponse": {
+        "properties": {
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/BookingHistoryResponse"
+            },
+            "type": "array",
+            "title": "History"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": ["history", "total"],
+        "title": "BookingHistoryListResponse",
+        "description": "Schema for booking history list responses."
+      },
+      "BookingHistoryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "booking_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Booking Id"
+          },
+          "action": {
+            "$ref": "#/components/schemas/BookingAction"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "performed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performed By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "booking_id",
+          "action",
+          "details",
+          "performed_by",
+          "created_at"
+        ],
+        "title": "BookingHistoryResponse",
+        "description": "Schema for booking history entries."
+      },
+      "BookingListResponse": {
+        "properties": {
+          "bookings": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Bookings"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": ["bookings", "total", "limit", "offset"],
+        "title": "BookingListResponse",
+        "description": "Schema for booking list responses."
+      },
+      "BookingMetrics": {
+        "properties": {
+          "total_bookings": {
+            "type": "integer",
+            "title": "Total Bookings",
+            "description": "Total number of bookings"
+          },
+          "confirmed_bookings": {
+            "type": "integer",
+            "title": "Confirmed Bookings",
+            "description": "Number of confirmed bookings"
+          },
+          "cancelled_bookings": {
+            "type": "integer",
+            "title": "Cancelled Bookings",
+            "description": "Number of cancelled bookings"
+          },
+          "pending_bookings": {
+            "type": "integer",
+            "title": "Pending Bookings",
+            "description": "Number of pending bookings"
+          },
+          "expired_bookings": {
+            "type": "integer",
+            "title": "Expired Bookings",
+            "description": "Number of expired bookings"
+          },
+          "total_revenue": {
+            "type": "string",
+            "title": "Total Revenue",
+            "description": "Total revenue from bookings"
+          },
+          "average_booking_value": {
+            "type": "string",
+            "title": "Average Booking Value",
+            "description": "Average booking value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_bookings",
+          "confirmed_bookings",
+          "cancelled_bookings",
+          "pending_bookings",
+          "expired_bookings",
+          "total_revenue",
+          "average_booking_value"
+        ],
+        "title": "BookingMetrics",
+        "description": "Schema for booking metrics."
+      },
+      "BookingReceiptResponse": {
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Booking Id"
+          },
+          "booking_reference": {
+            "type": "string",
+            "title": "Booking Reference"
+          },
+          "event_name": {
+            "type": "string",
+            "title": "Event Name"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "customer_email": {
+            "type": "string",
+            "title": "Customer Email"
+          },
+          "booking_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Booking Date"
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLineItem"
+            },
+            "type": "array",
+            "title": "Line Items"
+          },
+          "subtotal": {
+            "type": "string",
+            "title": "Subtotal"
+          },
+          "total_amount": {
+            "type": "string",
+            "title": "Total Amount"
+          },
+          "payment_status": {
+            "type": "string",
+            "title": "Payment Status"
+          },
+          "seat_details": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seat Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "booking_id",
+          "booking_reference",
+          "event_name",
+          "event_date",
+          "venue",
+          "customer_name",
+          "customer_email",
+          "booking_date",
+          "line_items",
+          "subtotal",
+          "total_amount",
+          "payment_status"
+        ],
+        "title": "BookingReceiptResponse",
+        "description": "Schema for booking receipt."
+      },
+      "BookingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "total_amount": {
+            "type": "string",
+            "title": "Total Amount"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BookingStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "event_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Name"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "venue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue"
+          },
+          "seat_bookings": {
+            "items": {
+              "$ref": "#/components/schemas/SeatBookingResponse"
+            },
+            "type": "array",
+            "title": "Seat Bookings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "event_id",
+          "quantity",
+          "total_amount",
+          "status",
+          "created_at",
+          "updated_at",
+          "expires_at"
+        ],
+        "title": "BookingResponse",
+        "description": "Schema for booking responses."
+      },
+      "BookingSearchRequest": {
+        "properties": {
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query",
+            "description": "Search query for event name or venue"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BookingStatus"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Filter by booking status"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id",
+            "description": "Filter by event ID"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date From",
+            "description": "Filter bookings from this date"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date To",
+            "description": "Filter bookings to this date"
+          },
+          "min_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Amount",
+            "description": "Minimum booking amount"
+          },
+          "max_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount",
+            "description": "Maximum booking amount"
+          },
+          "sort_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort By",
+            "description": "Sort field",
+            "default": "created_at"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order",
+            "description": "Sort order (asc/desc)",
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Maximum number of results",
+            "default": 50
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Number of results to skip",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "BookingSearchRequest",
+        "description": "Schema for booking search requests."
+      },
+      "BookingStatus": {
+        "type": "string",
+        "enum": ["pending", "confirmed", "cancelled", "expired"],
+        "title": "BookingStatus",
+        "description": "Enumeration for booking status."
+      },
+      "BulkSeatCreateRequest": {
+        "properties": {
+          "seats": {
+            "items": {
+              "$ref": "#/components/schemas/SeatCreate"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Seats",
+            "description": "List of seats to create"
+          }
+        },
+        "type": "object",
+        "required": ["seats"],
+        "title": "BulkSeatCreateRequest",
+        "description": "Schema for bulk seat creation."
+      },
+      "CancelBookingResponse": {
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/BookingResponse"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Booking cancelled successfully"
+          },
+          "refund_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Amount"
+          }
+        },
+        "type": "object",
+        "required": ["booking"],
+        "title": "CancelBookingResponse",
+        "description": "Response for successful booking cancellation."
+      },
+      "CancellationAnalytics": {
+        "properties": {
+          "total_bookings": {
+            "type": "integer",
+            "title": "Total Bookings",
+            "description": "Total number of bookings"
+          },
+          "cancelled_bookings": {
+            "type": "integer",
+            "title": "Cancelled Bookings",
+            "description": "Number of cancelled bookings"
+          },
+          "cancellation_rate": {
+            "type": "number",
+            "title": "Cancellation Rate",
+            "description": "Cancellation rate as percentage"
+          },
+          "average_time_to_cancellation_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Time To Cancellation Hours",
+            "description": "Average time from booking to cancellation in hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_bookings",
+          "cancelled_bookings",
+          "cancellation_rate"
+        ],
+        "title": "CancellationAnalytics",
+        "description": "Schema for cancellation rate analytics."
+      },
+      "CapacityUtilization": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id",
+            "description": "Event ID"
+          },
+          "event_name": {
+            "type": "string",
+            "title": "Event Name",
+            "description": "Event name"
+          },
+          "total_capacity": {
+            "type": "integer",
+            "title": "Total Capacity",
+            "description": "Total event capacity"
+          },
+          "booked_capacity": {
+            "type": "integer",
+            "title": "Booked Capacity",
+            "description": "Number of booked seats"
+          },
+          "available_capacity": {
+            "type": "integer",
+            "title": "Available Capacity",
+            "description": "Number of available seats"
+          },
+          "utilization_percentage": {
+            "type": "number",
+            "title": "Utilization Percentage",
+            "description": "Capacity utilization percentage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_name",
+          "total_capacity",
+          "booked_capacity",
+          "available_capacity",
+          "utilization_percentage"
+        ],
+        "title": "CapacityUtilization",
+        "description": "Schema for capacity utilization metrics."
+      },
+      "ConfirmBookingResponse": {
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/BookingResponse"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Booking confirmed successfully"
+          }
+        },
+        "type": "object",
+        "required": ["booking"],
+        "title": "ConfirmBookingResponse",
+        "description": "Response for successful booking confirmation."
+      },
+      "CreateBookingResponse": {
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/BookingResponse"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "Booking created successfully"
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "title": "Expires In Minutes"
+          }
+        },
+        "type": "object",
+        "required": ["booking", "expires_in_minutes"],
+        "title": "CreateBookingResponse",
+        "description": "Response for successful booking creation."
+      },
+      "DailyBookingStats": {
+        "properties": {
+          "booking_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Booking Date",
+            "description": "Date of the statistics"
+          },
+          "total_bookings": {
+            "type": "integer",
+            "title": "Total Bookings",
+            "description": "Total bookings for the day"
+          },
+          "confirmed_bookings": {
+            "type": "integer",
+            "title": "Confirmed Bookings",
+            "description": "Confirmed bookings for the day"
+          },
+          "cancelled_bookings": {
+            "type": "integer",
+            "title": "Cancelled Bookings",
+            "description": "Cancelled bookings for the day"
+          },
+          "revenue": {
+            "type": "string",
+            "title": "Revenue",
+            "description": "Revenue for the day"
+          },
+          "unique_users": {
+            "type": "integer",
+            "title": "Unique Users",
+            "description": "Number of unique users who made bookings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "booking_date",
+          "total_bookings",
+          "confirmed_bookings",
+          "cancelled_bookings",
+          "revenue",
+          "unique_users"
+        ],
+        "title": "DailyBookingStats",
+        "description": "Schema for daily booking statistics."
+      },
+      "EventCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Event name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Event description"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Venue",
+            "description": "Event venue"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date",
+            "description": "Event date and time"
+          },
+          "total_capacity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Total Capacity",
+            "description": "Total event capacity"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price",
+            "description": "Event ticket price"
+          },
+          "has_seat_selection": {
+            "type": "boolean",
+            "title": "Has Seat Selection",
+            "description": "Whether event has seat selection",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": ["name", "venue", "event_date", "total_capacity", "price"],
+        "title": "EventCreate",
+        "description": "Schema for creating a new event."
+      },
+      "EventListResponse": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventResponse"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          }
+        },
+        "type": "object",
+        "required": ["events", "total", "page", "size", "pages"],
+        "title": "EventListResponse",
+        "description": "Schema for paginated event list response."
+      },
+      "EventPerformanceMetrics": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id",
+            "description": "Event ID"
+          },
+          "event_name": {
+            "type": "string",
+            "title": "Event Name",
+            "description": "Event name"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue",
+            "description": "Event venue"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date",
+            "description": "Event date"
+          },
+          "total_capacity": {
+            "type": "integer",
+            "title": "Total Capacity",
+            "description": "Total event capacity"
+          },
+          "tickets_sold": {
+            "type": "integer",
+            "title": "Tickets Sold",
+            "description": "Number of tickets sold"
+          },
+          "revenue": {
+            "type": "string",
+            "title": "Revenue",
+            "description": "Total revenue"
+          },
+          "capacity_utilization": {
+            "type": "number",
+            "title": "Capacity Utilization",
+            "description": "Capacity utilization percentage"
+          },
+          "booking_velocity": {
+            "type": "number",
+            "title": "Booking Velocity",
+            "description": "Bookings per day since event creation"
+          },
+          "cancellation_rate": {
+            "type": "number",
+            "title": "Cancellation Rate",
+            "description": "Cancellation rate for this event"
+          },
+          "waitlist_size": {
+            "type": "integer",
+            "title": "Waitlist Size",
+            "description": "Current waitlist size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_name",
+          "venue",
+          "event_date",
+          "total_capacity",
+          "tickets_sold",
+          "revenue",
+          "capacity_utilization",
+          "booking_velocity",
+          "cancellation_rate",
+          "waitlist_size"
+        ],
+        "title": "EventPerformanceMetrics",
+        "description": "Schema for event performance metrics."
+      },
+      "EventResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Event name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Event description"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Venue",
+            "description": "Event venue"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date",
+            "description": "Event date and time"
+          },
+          "total_capacity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Total Capacity",
+            "description": "Total event capacity"
+          },
+          "price": {
+            "type": "string",
+            "title": "Price",
+            "description": "Event ticket price"
+          },
+          "has_seat_selection": {
+            "type": "boolean",
+            "title": "Has Seat Selection",
+            "description": "Whether event has seat selection",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "available_capacity": {
+            "type": "integer",
+            "title": "Available Capacity"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "is_sold_out": {
+            "type": "boolean",
+            "title": "Is Sold Out"
+          },
+          "capacity_utilization": {
+            "type": "number",
+            "title": "Capacity Utilization"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "venue",
+          "event_date",
+          "total_capacity",
+          "price",
+          "id",
+          "available_capacity",
+          "is_active",
+          "version",
+          "created_at",
+          "updated_at",
+          "is_sold_out",
+          "capacity_utilization"
+        ],
+        "title": "EventResponse",
+        "description": "Schema for event response."
+      },
+      "EventUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "venue": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Venue"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "total_capacity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Capacity"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "has_seat_selection": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Seat Selection"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "EventUpdate",
+        "description": "Schema for updating an existing event."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PasswordChange": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "New Password",
+            "description": "Password must be at least 8 characters"
+          }
+        },
+        "type": "object",
+        "required": ["current_password", "new_password"],
+        "title": "PasswordChange",
+        "description": "Schema for changing password."
+      },
+      "PopularEvent": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id",
+            "description": "Event ID"
+          },
+          "event_name": {
+            "type": "string",
+            "title": "Event Name",
+            "description": "Event name"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue",
+            "description": "Event venue"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Event Date",
+            "description": "Event date"
+          },
+          "total_bookings": {
+            "type": "integer",
+            "title": "Total Bookings",
+            "description": "Total number of bookings"
+          },
+          "total_tickets_sold": {
+            "type": "integer",
+            "title": "Total Tickets Sold",
+            "description": "Total tickets sold"
+          },
+          "revenue": {
+            "type": "string",
+            "title": "Revenue",
+            "description": "Total revenue"
+          },
+          "capacity_utilization": {
+            "type": "number",
+            "title": "Capacity Utilization",
+            "description": "Capacity utilization percentage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_name",
+          "venue",
+          "event_date",
+          "total_bookings",
+          "total_tickets_sold",
+          "revenue",
+          "capacity_utilization"
+        ],
+        "title": "PopularEvent",
+        "description": "Schema for popular events ranking."
+      },
+      "ReceiptLineItem": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "total_price": {
+            "type": "string",
+            "title": "Total Price"
+          }
+        },
+        "type": "object",
+        "required": ["description", "quantity", "unit_price", "total_price"],
+        "title": "ReceiptLineItem",
+        "description": "Schema for receipt line items."
+      },
+      "RevenueAnalytics": {
+        "properties": {
+          "total_revenue": {
+            "type": "string",
+            "title": "Total Revenue",
+            "description": "Total revenue"
+          },
+          "confirmed_revenue": {
+            "type": "string",
+            "title": "Confirmed Revenue",
+            "description": "Revenue from confirmed bookings"
+          },
+          "pending_revenue": {
+            "type": "string",
+            "title": "Pending Revenue",
+            "description": "Revenue from pending bookings"
+          },
+          "average_revenue_per_booking": {
+            "type": "string",
+            "title": "Average Revenue Per Booking",
+            "description": "Average revenue per booking"
+          },
+          "average_revenue_per_user": {
+            "type": "string",
+            "title": "Average Revenue Per User",
+            "description": "Average revenue per user"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_revenue",
+          "confirmed_revenue",
+          "pending_revenue",
+          "average_revenue_per_booking",
+          "average_revenue_per_user"
+        ],
+        "title": "RevenueAnalytics",
+        "description": "Schema for revenue analytics."
+      },
+      "SeatAvailabilityResponse": {
+        "properties": {
+          "available_seats": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Available Seats"
+          },
+          "unavailable_seats": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Unavailable Seats"
+          },
+          "missing_seat_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Seat Ids"
+          },
+          "all_available": {
+            "type": "boolean",
+            "title": "All Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "available_seats",
+          "unavailable_seats",
+          "missing_seat_ids",
+          "all_available"
+        ],
+        "title": "SeatAvailabilityResponse",
+        "description": "Schema for seat availability check response."
+      },
+      "SeatBookingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "seat_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Seat Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "row": {
+            "type": "string",
+            "title": "Row"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "price": {
+            "type": "string",
+            "title": "Price"
+          }
+        },
+        "type": "object",
+        "required": ["id", "seat_id", "section", "row", "number", "price"],
+        "title": "SeatBookingResponse",
+        "description": "Schema for seat booking information in responses."
+      },
+      "SeatCreate": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Section",
+            "description": "Seat section"
+          },
+          "row": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Row",
+            "description": "Seat row"
+          },
+          "number": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Number",
+            "description": "Seat number"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price",
+            "description": "Seat price"
+          }
+        },
+        "type": "object",
+        "required": ["section", "row", "number", "price"],
+        "title": "SeatCreate",
+        "description": "Schema for creating a new seat."
+      },
+      "SeatHoldRequest": {
+        "properties": {
+          "seat_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Seat Ids",
+            "description": "List of seat IDs to hold"
+          },
+          "hold_duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hold Duration Minutes",
+            "description": "Hold duration in minutes (1-60)"
+          }
+        },
+        "type": "object",
+        "required": ["seat_ids"],
+        "title": "SeatHoldRequest",
+        "description": "Schema for seat hold request."
+      },
+      "SeatHoldResponse": {
+        "properties": {
+          "held_seat_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Held Seat Ids"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "hold_duration_minutes": {
+            "type": "integer",
+            "title": "Hold Duration Minutes"
+          }
+        },
+        "type": "object",
+        "required": ["held_seat_ids", "expires_at", "hold_duration_minutes"],
+        "title": "SeatHoldResponse",
+        "description": "Schema for seat hold response."
+      },
+      "SeatMapResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "seat_map": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Seat Map"
+          },
+          "total_seats": {
+            "type": "integer",
+            "title": "Total Seats"
+          },
+          "available_seats": {
+            "type": "integer",
+            "title": "Available Seats"
+          },
+          "held_seats": {
+            "type": "integer",
+            "title": "Held Seats"
+          },
+          "booked_seats": {
+            "type": "integer",
+            "title": "Booked Seats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "seat_map",
+          "total_seats",
+          "available_seats",
+          "held_seats",
+          "booked_seats"
+        ],
+        "title": "SeatMapResponse",
+        "description": "Schema for seat map response."
+      },
+      "SeatPricingTierResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "pricing_tiers": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Pricing Tiers"
+          }
+        },
+        "type": "object",
+        "required": ["event_id", "pricing_tiers"],
+        "title": "SeatPricingTierResponse",
+        "description": "Schema for seat pricing tier response."
+      },
+      "SeatPricingUpdateRequest": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Section"
+          },
+          "new_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "New Price"
+          }
+        },
+        "type": "object",
+        "required": ["section", "new_price"],
+        "title": "SeatPricingUpdateRequest",
+        "description": "Schema for updating seat pricing."
+      },
+      "SeatResponse": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Section",
+            "description": "Seat section"
+          },
+          "row": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Row",
+            "description": "Seat row"
+          },
+          "number": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
+            "title": "Number",
+            "description": "Seat number"
+          },
+          "price": {
+            "type": "string",
+            "title": "Price",
+            "description": "Seat price"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "is_available": {
+            "type": "boolean",
+            "title": "Is Available"
+          },
+          "seat_identifier": {
+            "type": "string",
+            "title": "Seat Identifier"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "section",
+          "row",
+          "number",
+          "price",
+          "id",
+          "event_id",
+          "status",
+          "is_available",
+          "seat_identifier",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SeatResponse",
+        "description": "Schema for seat response."
+      },
+      "SeatStatistics": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "total_seats": {
+            "type": "integer",
+            "title": "Total Seats"
+          },
+          "available_seats": {
+            "type": "integer",
+            "title": "Available Seats"
+          },
+          "held_seats": {
+            "type": "integer",
+            "title": "Held Seats"
+          },
+          "booked_seats": {
+            "type": "integer",
+            "title": "Booked Seats"
+          },
+          "blocked_seats": {
+            "type": "integer",
+            "title": "Blocked Seats"
+          },
+          "capacity_utilization": {
+            "type": "number",
+            "title": "Capacity Utilization"
+          },
+          "revenue_potential": {
+            "type": "string",
+            "title": "Revenue Potential"
+          },
+          "current_revenue": {
+            "type": "string",
+            "title": "Current Revenue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "total_seats",
+          "available_seats",
+          "held_seats",
+          "booked_seats",
+          "blocked_seats",
+          "capacity_utilization",
+          "revenue_potential",
+          "current_revenue"
+        ],
+        "title": "SeatStatistics",
+        "description": "Schema for seat statistics."
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "type": "object",
+        "required": ["access_token", "expires_in", "user"],
+        "title": "TokenResponse",
+        "description": "Schema for token response."
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password"],
+        "title": "UserLogin",
+        "description": "Schema for user login."
+      },
+      "UserProfile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "is_admin": {
+            "type": "boolean",
+            "title": "Is Admin"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "first_name",
+          "last_name",
+          "is_admin",
+          "is_active"
+        ],
+        "title": "UserProfile",
+        "description": "Schema for user profile information."
+      },
+      "UserProfileUpdate": {
+        "properties": {
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          }
+        },
+        "type": "object",
+        "title": "UserProfileUpdate",
+        "description": "Schema for updating user profile."
+      },
+      "UserRegistration": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password",
+            "description": "Password must be at least 8 characters"
+          },
+          "first_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Last Name"
+          }
+        },
+        "type": "object",
+        "required": ["email", "password", "first_name", "last_name"],
+        "title": "UserRegistration",
+        "description": "Schema for user registration."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      },
+      "WaitlistCreate": {
+        "properties": {
+          "requested_quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Requested Quantity",
+            "description": "Number of tickets requested"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id",
+            "description": "ID of the event to join waitlist for"
+          }
+        },
+        "type": "object",
+        "required": ["requested_quantity", "event_id"],
+        "title": "WaitlistCreate",
+        "description": "Schema for creating a waitlist entry."
+      },
+      "WaitlistResponse": {
+        "properties": {
+          "requested_quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Requested Quantity",
+            "description": "Number of tickets requested"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position",
+            "description": "Position in the waitlist queue"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WaitlistStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requested_quantity",
+          "id",
+          "user_id",
+          "event_id",
+          "position",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "WaitlistResponse",
+        "description": "Schema for waitlist entry responses."
+      },
+      "WaitlistStatsResponse": {
+        "properties": {
+          "total_waitlisted": {
+            "type": "integer",
+            "title": "Total Waitlisted"
+          },
+          "active_waitlisted": {
+            "type": "integer",
+            "title": "Active Waitlisted"
+          },
+          "notified_count": {
+            "type": "integer",
+            "title": "Notified Count"
+          },
+          "converted_count": {
+            "type": "integer",
+            "title": "Converted Count"
+          },
+          "average_position": {
+            "type": "number",
+            "title": "Average Position"
+          },
+          "estimated_wait_time_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Wait Time Hours",
+            "description": "Estimated wait time in hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_waitlisted",
+          "active_waitlisted",
+          "notified_count",
+          "converted_count",
+          "average_position"
+        ],
+        "title": "WaitlistStatsResponse",
+        "description": "Schema for waitlist statistics."
+      },
+      "WaitlistStatus": {
+        "type": "string",
+        "enum": ["active", "notified", "expired", "converted"],
+        "title": "WaitlistStatus",
+        "description": "Enumeration for waitlist status."
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "authentication",
+      "description": "User authentication and authorization operations"
+    },
+    {
+      "name": "users",
+      "description": "User profile management operations"
+    },
+    {
+      "name": "events",
+      "description": "Event management and listing operations"
+    },
+    {
+      "name": "seats",
+      "description": "Seat management and venue layout operations"
+    },
+    {
+      "name": "bookings",
+      "description": "Ticket booking and reservation operations"
+    },
+    {
+      "name": "waitlist",
+      "description": "Waitlist management for sold-out events"
+    },
+    {
+      "name": "analytics",
+      "description": "Admin analytics and reporting operations"
+    },
+    {
+      "name": "health",
+      "description": "System health and monitoring endpoints"
+    }
+  ]
+}

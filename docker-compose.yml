@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://user:password@db:5432/evently}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/1}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - ENVIRONMENT=development
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./evently_booking_platform:/app/evently_booking_platform
+      - ./main.py:/app/main.py
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: celery -A evently_booking_platform.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://user:password@db:5432/evently}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/1}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - ENVIRONMENT=development
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: celery -A evently_booking_platform.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://user:password@db:5432/evently}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/1}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - ENVIRONMENT=development
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - celery-worker
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=evently
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
