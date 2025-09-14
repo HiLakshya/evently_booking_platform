@@ -106,6 +106,7 @@ evently-booking-platform/
 - [API Documentation](miscellaneous/API_DOCUMENTATION.md)
 - [Advanced Features](miscellaneous/ADVANCED_FEATURES_DOCUMENTATION.md)
 - [System Design](miscellaneous/DESIGN.md)
+- [Deployment Guide](miscellaneous/DEPLOYMENT_GUIDE.md)
 
 ---
 
