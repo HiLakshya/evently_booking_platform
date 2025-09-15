@@ -50,6 +50,8 @@ Evently implements a robust booking workflow with concurrency control to prevent
 - Authentication: JWT (bcrypt for password hashing)
 - Tooling: pytest, coverage, Black, MyPy, pre-commit
 
+For the ER diagram and high-level system design, see the [System Design](miscellaneous/DESIGN.md) document.
+
 ## Getting Started
 
 ### Prerequisites
