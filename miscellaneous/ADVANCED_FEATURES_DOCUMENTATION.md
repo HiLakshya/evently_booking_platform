@@ -1,19 +1,21 @@
-# ⚡ Advanced Features – Evently Booking Platform
+# Advanced Features
 
-This document describes the **advanced features** implemented in Evently, extending beyond the basic booking and event management system.
+This document describes advanced capabilities that extend beyond the core booking and event management features.
+
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
 
 ---
 
-## 📊 1. Advanced Analytics
+## 1. Advanced Analytics
 
-**Features**
+Features
 
 - Booking trends (hourly, daily, weekly, monthly).
 - User behavior insights (retention, booking times, lead time).
 - Predictive analytics (next-month forecasts, trending events).
 - Advanced dashboard for admins.
 
-**Endpoints**
+Endpoints
 
 ```
 
@@ -24,7 +26,7 @@ GET /api/v1/advanced/analytics/dashboard
 
 ```
 
-**Key Metrics**
+Key Metrics
 
 - Conversion rates
 - Retention rates
@@ -33,23 +35,23 @@ GET /api/v1/advanced/analytics/dashboard
 
 ---
 
-## 🎟️ 2. Seat Recommendation System
+## 2. Seat Recommendation System
 
-**Features**
+Features
 
 - Personalized suggestions based on user booking history.
 - Group optimization (find seats together).
 - Price-based recommendations (optimize within budget).
 - Accessibility-aware seat placement.
 
-**Algorithm Components**
+Algorithm Components
 
 - **Similarity scoring** – user preferences.
 - **Value scoring** – price-to-quality ratio.
 - **Location scoring** – distance from stage.
 - **Group optimization** – contiguous seats.
 
-**Endpoint**
+Endpoint
 
 ```
 
@@ -72,21 +74,21 @@ Example request:
 
 ---
 
-## 👥 3. Bulk Booking Operations
+## 3. Bulk Booking Operations
 
-**Features**
+Features
 
 - Corporate/group bookings with discounts.
 - Automatic seat assignment for large groups.
 - Discount codes and group receipts.
 
-**Discount Structure**
+Discount Structure
 
 - 10+ tickets → 5% discount
 - 20+ tickets → 10% discount
 - 50+ tickets → 15% discount
 
-**Endpoint**
+Endpoint
 
 ```
 POST /api/v1/advanced/bookings/bulk
@@ -106,15 +108,15 @@ Example request:
 
 ---
 
-## 🎭 4. Event Recommendation System
+## 4. Event Recommendation System
 
-**Features**
+Features
 
 - **Collaborative filtering** – recommends based on similar users.
 - **Content-based filtering** – matches event metadata.
 - **Hybrid model** – combines both approaches.
 
-**Recommendation Factors**
+Recommendation Factors
 
 - Venue preferences
 - Price patterns
@@ -122,7 +124,7 @@ Example request:
 - Time/day preferences
 - Popularity
 
-**Endpoint**
+Endpoint
 
 ```
 POST /api/v1/advanced/events/recommendations
@@ -130,22 +132,22 @@ POST /api/v1/advanced/events/recommendations
 
 ---
 
-## 💰 5. Dynamic Pricing System
+## 5. Dynamic Pricing System
 
-**Features**
+Features
 
 - Demand-based pricing (capacity utilization).
 - Time-based pricing (closer to event = higher price).
 - Booking velocity (surges = price bump).
 - Waitlist pressure (high demand = increased price).
 
-**Constraints**
+Constraints
 
 - Max price increase: **+50%**
 - Max price decrease: **-20%**
 - Minimum adjustment: **1%**
 
-**Endpoints**
+Endpoints
 
 ```
 POST /api/v1/advanced/pricing/update/{event_id}
@@ -154,9 +156,9 @@ POST /api/v1/advanced/pricing/update-all
 
 ---
 
-## 🖥️ 6. Comprehensive Monitoring
+## 6. Comprehensive Monitoring
 
-**Features**
+Features
 
 - Database health (pool size, queries).
 - Cache health (Redis ops, hit/miss ratio).
@@ -164,14 +166,14 @@ POST /api/v1/advanced/pricing/update-all
 - Booking system health (failures, stuck bookings).
 - External services (email, payments).
 
-**Endpoints**
+Endpoints
 
 ```
 GET /api/v1/advanced/health/comprehensive
 GET /api/v1/advanced/health/monitoring
 ```
 
-**Metrics**
+Metrics
 
 - Response times (p50, p95, p99).
 - Error rates by service.
@@ -180,9 +182,9 @@ GET /api/v1/advanced/health/monitoring
 
 ---
 
-## 🔧 Implementation Details
+## Implementation Details
 
-**Service Architecture**
+Service Architecture
 
 ```
 API Layer (FastAPI)
@@ -192,21 +194,21 @@ Service Layer (Business Logic)
 Data Layer (SQLAlchemy + Redis)
 ```
 
-**Caching Strategy**
+Caching Strategy
 
 - Event recommendations → cached 1h
 - Analytics data → cached 15m
 - Health checks → cached 5m
 - Seat recommendations → real-time only
 
-**Performance**
+Performance
 
 - Async/await everywhere
 - DB connection pooling
 - Batch analytics processing
 - Circuit breakers for external services
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 - **Slow recommendations** → check DB indexes.
 - **High memory usage** → reduce analytics cache TTL.
@@ -215,7 +217,7 @@ Data Layer (SQLAlchemy + Redis)
 
 ---
 
-## 🚀 Future Enhancements
+## Future Enhancements
 
 - Machine learning for smarter recommendations.
 - A/B testing framework for pricing.

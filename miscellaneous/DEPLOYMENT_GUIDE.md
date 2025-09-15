@@ -1,20 +1,43 @@
 # Deployment Guide
 
-This document explains how to set up and use the CI/CD pipeline for the Evently Booking Platform, including the complete GitHub Actions workflow and Render deployment process.
+This guide describes the CI/CD pipeline and deployment process for the Evently Booking Platform using GitHub Actions, Docker Hub, and Render.
 
-## Overview
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
 
-The CI/CD pipeline automatically:
+## Table of Contents
 
-1. Builds a Docker image on every push to `main`
-2. Pushes the image to Docker Hub
-3. Triggers deployment on Render via deploy hook
-4. Supports multi-architecture builds (AMD64 and ARM64)
-5. Includes comprehensive testing and validation
+- Overview
+- Required GitHub Secrets
+  - Docker Hub Credentials
+  - Render Deployment
+  - Application Environment Variables (Render)
+- GitHub Actions Workflow
+  - Triggers
+  - Jobs and Steps
+  - Workflow Configuration
+  - Docker Image Details
+- Render Deployment Process
+  - Service Configuration
+  - Deploy Hook Integration
+  - Environment Variables
+  - Deployment Flow
+  - Service Features
+- Complete Deployment Workflow
+  - Initial Setup
+  - Development Workflow
+  - Monitoring Deployment
+- Local Development
+- Monitoring
+- Troubleshooting
+  - GitHub Actions
+  - Docker Hub
+  - Render
+  - Debugging Commands
+- Security Notes
 
 ## Required GitHub Secrets
 
-Set up these secrets in your GitHub repository settings:
+Configure these secrets in the repository settings under Actions secrets and variables.
 
 ### Docker Hub Credentials
 
@@ -23,11 +46,11 @@ Set up these secrets in your GitHub repository settings:
 
 ### Render Deployment
 
-- `RENDER_DEPLOY_HOOK_URL`: Your Render deploy hook URL
+- `RENDER_DEPLOY_HOOK_URL`: Render deploy hook URL
 
-### Application Environment Variables (for Render)
+### Application Environment Variables (Render)
 
-Configure these in your Render service environment (see `.env.example` for reference):
+Configure the following in the Render service environment (see `.env.example` for full list):
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `REDIS_URL`: Redis connection string
@@ -39,23 +62,23 @@ Configure these in your Render service environment (see `.env.example` for refer
 
 ## GitHub Actions Workflow
 
-The deployment process is automated through GitHub Actions using the workflow file `.github/workflows/deploy.yml`.
+The workflow in `.github/workflows/deploy.yml` builds and publishes Docker images and triggers Render deployments.
 
-### Workflow Triggers
+### Triggers
 
-- **Push to main branch**: Builds, pushes to Docker Hub, and triggers Render deployment
-- **Pull Requests**: Builds image for testing (doesn't push to registry)
+- Push to `main`: build, push, and deploy
+- Pull requests to `main`: build for validation (no push)
 
-### Workflow Steps
+### Jobs and Steps
 
-#### For Pull Requests (`build-pr` job):
+#### Pull Requests (`build-pr` job)
 
 1. **Checkout Code**: Downloads the repository code
 2. **Setup Docker Buildx**: Configures multi-platform Docker builds
 3. **Build Docker Image**: Creates image with tag `temp/evently-booking-platform:pr-{PR_NUMBER}`
 4. **Cache Management**: Uses GitHub Actions cache for faster builds
 
-#### For Main Branch (`build-and-push` job):
+#### Main Branch (`build-and-push` job)
 
 1. **Checkout Code**: Downloads the repository code
 2. **Setup Docker Buildx**: Configures multi-platform Docker builds
@@ -92,7 +115,7 @@ on:
 
 ## Docker Images
 
-### Production Image Tags:
+### Production Image Tags
 
 - `your-username/evently-booking-platform:latest` - Latest main branch
 - `your-username/evently-booking-platform:main-<sha>` - Specific commit
@@ -131,7 +154,7 @@ PORT=3000
 
 ### Deployment Flow
 
-#### Automatic Deployment (Recommended)
+#### Automatic Deployment (recommended)
 
 1. **Code Push**: Developer pushes to `main` branch
 2. **GitHub Actions**: Workflow triggers automatically
@@ -204,7 +227,7 @@ git push origin main
 
 ## Local Development
 
-### Build and Run:
+### Build and Run
 
 ```bash
 # Development with hot reload
@@ -219,29 +242,29 @@ docker build -t evently-booking-platform:local .
 
 ## Monitoring
 
-### Health Checks:
+### Health Checks
 
 - Application: `http://localhost:3000/health`
 - Docker health check runs every 30 seconds
 - Render monitors service health automatically
 
-### Logs:
+### Logs
 
 - View logs in Render dashboard
 - Use `docker logs` for local debugging
 
 ## Troubleshooting
 
-### GitHub Actions Issues
+### GitHub Actions
 
-#### Build Failures:
+#### Build Failures
 
 1. **Check Workflow Logs**: Go to Actions tab in GitHub repository
 2. **Verify Secrets**: Ensure `DOCKER_USERNAME`, `DOCKER_PASSWORD` are set
 3. **Dockerfile Issues**: Check for syntax errors in Dockerfile
 4. **Dependencies**: Verify all dependencies are properly specified in pyproject.toml
 
-#### Common Build Errors:
+#### Common Build Errors
 
 ```bash
 # Docker login failed
@@ -257,32 +280,32 @@ Error: failed to solve: no match for platform
 # Solution: Verify platform specification in workflow
 ```
 
-### Docker Hub Issues
+### Docker Hub
 
-#### Push Failures:
+#### Push Failures
 
 1. **Authentication**: Verify Docker Hub credentials
 2. **Repository Access**: Ensure repository exists and is accessible
 3. **Image Size**: Check if image exceeds Docker Hub limits
 4. **Rate Limits**: Monitor Docker Hub pull/push rate limits
 
-### Render Deployment Issues
+### Render
 
-#### Service Won't Start:
+#### Service will not start
 
 1. **Image Pull**: Check if image exists in Docker Hub
 2. **Environment Variables**: Verify all required env vars are set
 3. **Port Configuration**: Ensure PORT=3000 is set
 4. **Health Check**: Verify `/health` endpoint responds correctly
 
-#### Service Unhealthy:
+#### Service unhealthy
 
 1. **Database Connection**: Check DATABASE_URL format and connectivity
 2. **Redis Connection**: Verify REDIS_URL is accessible
 3. **Dependencies**: Ensure all required services are available
 4. **Logs**: Check Render service logs for specific errors
 
-#### Common Render Errors:
+#### Common Render Errors
 
 ```bash
 # Database connection failed
@@ -300,7 +323,7 @@ Error: Health check failed
 
 ### Debugging Commands
 
-#### Local Testing:
+#### Local Testing
 
 ```bash
 # Test Docker build locally
@@ -316,7 +339,7 @@ docker logs <container_id>
 curl http://localhost:3000/health
 ```
 
-#### Production Debugging:
+#### Production Debugging
 
 ```bash
 # Check Render service logs
@@ -374,14 +397,14 @@ on:
   uses: actions/checkout@v4
 ```
 
-#### 2. Setup Docker Buildx
+#### 2. Set up Docker Buildx
 
 ```yaml
 - name: Set up Docker Buildx
   uses: docker/setup-buildx-action@v3
 ```
 
-#### 3. Docker Hub Authentication (Main Branch Only)
+#### 3. Docker Hub Authentication (main branch only)
 
 ```yaml
 - name: Log in to Docker Hub
@@ -391,7 +414,7 @@ on:
     password: ${{ secrets.DOCKER_PASSWORD }}
 ```
 
-#### 4. Extract Metadata (Main Branch Only)
+#### 4. Extract Metadata (main branch only)
 
 ```yaml
 - name: Extract metadata

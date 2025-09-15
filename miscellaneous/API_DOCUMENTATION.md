@@ -1,6 +1,8 @@
-# 📖 Evently API Documentation
+# API Documentation
 
-The Evently Booking Platform exposes a **RESTful API** built with **FastAPI**, supporting both **user** and **admin** functionalities.
+The Evently Booking Platform exposes a RESTful API built with FastAPI, supporting user and admin operations.
+
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
 
 Base URL (development):
 
@@ -20,7 +22,7 @@ Current version:
 
 ---
 
-## 🔑 Authentication
+## Authentication
 
 Evently uses **JWT (JSON Web Tokens)** for authentication.
 
@@ -40,7 +42,7 @@ Tokens expire in **1 hour**.
 
 ---
 
-## 🧍 User Authentication Endpoints
+## User Authentication Endpoints
 
 ### Register
 
@@ -100,7 +102,7 @@ Response:
 
 ---
 
-## 🎫 Events
+## Events
 
 ### List Events
 
@@ -118,7 +120,7 @@ Query Parameters:
 
 ---
 
-### Create Event (Admin Only)
+### Create Event (admin)
 
 `POST /api/v1/events`
 
@@ -142,17 +144,17 @@ Request:
 
 `GET /api/v1/events/{event_id}`
 
-### Update Event (Admin Only)
+### Update Event (admin)
 
 `PUT /api/v1/events/{event_id}`
 
-### Delete Event (Admin Only)
+### Delete Event (admin)
 
 `DELETE /api/v1/events/{event_id}`
 
 ---
 
-## 📝 Bookings
+## Bookings
 
 ### Create Booking
 
@@ -186,13 +188,13 @@ _(`seat_ids` optional if event doesn’t use seat selection.)_
 
 ---
 
-## 💺 Seats
+## Seats
 
 ### Get Seat Map
 
 `GET /api/v1/seats/{event_id}`
 
-### Bulk Create Seats (Admin)
+### Bulk Create Seats (admin)
 
 `POST /api/v1/seats/{event_id}/bulk-create`
 
@@ -206,7 +208,7 @@ _(`seat_ids` optional if event doesn’t use seat selection.)_
 
 ---
 
-## ⏳ Waitlist
+## Waitlist
 
 ### Join Waitlist
 
@@ -231,7 +233,7 @@ Request:
 
 ---
 
-## 📊 Analytics (Admin Only)
+## Analytics (admin)
 
 ### Dashboard
 
@@ -251,7 +253,7 @@ Request:
 
 ---
 
-## 📈 Advanced Features (Admin Only)
+## Advanced Features (admin)
 
 - **Trends** → `GET /api/v1/advanced/analytics/trends`
 - **User Behavior** → `GET /api/v1/advanced/analytics/user-behavior`
@@ -265,7 +267,7 @@ Request:
 
 ---
 
-## 🏥 Health & Monitoring
+## Health and Monitoring
 
 - `GET /` → Basic API info
 - `GET /health` → Basic health check
@@ -274,7 +276,7 @@ Request:
 
 ---
 
-## ⚠️ Error Handling
+## Error Handling
 
 Standard error response format:
 

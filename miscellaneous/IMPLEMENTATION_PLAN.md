@@ -1,11 +1,12 @@
-# 🗺️ Implementation Plan – Evently Booking Platform
+# Implementation Plan
 
-This document outlines the **step-by-step implementation plan** for building the Evently backend.  
-Each stage includes key tasks and implementation milestones.
+This document outlines the step-by-step implementation plan for the Evently backend. Each phase lists key tasks and milestones.
+
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
 
 ---
 
-## ✅ Phase 1 – Project Setup
+## Phase 1 – Project Setup
 
 - Initialize Python project with **uv + pyproject.toml**.
 - Install dependencies: FastAPI, SQLAlchemy, PostgreSQL driver, Redis, Celery.
@@ -15,7 +16,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 2 – Database & Models
+## Phase 2 – Database and Models
 
 - Define **SQLAlchemy models**:
   - Users
@@ -29,7 +30,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 3 – User Authentication
+## Phase 3 – User Authentication
 
 - Implement **User model** with bcrypt password hashing.
 - Setup JWT-based authentication.
@@ -38,7 +39,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 4 – Event Management
+## Phase 4 – Event Management
 
 - Implement CRUD for events.
 - Add filters: date, price, availability, venue.
@@ -47,7 +48,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 5 – Seat Management
+## Phase 5 – Seat Management
 
 - Define Seat model with section/row/number.
 - Generate seat maps for events.
@@ -56,7 +57,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 6 – Booking System
+## Phase 6 – Booking System
 
 - Implement booking creation with **optimistic locking**.
 - Ensure atomic capacity updates.
@@ -65,7 +66,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 7 – Booking History & Dashboard
+## Phase 7 – Booking History and Dashboard
 
 - Implement user booking history retrieval.
 - Add booking status categories (confirmed, cancelled, expired).
@@ -74,7 +75,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 8 – Waitlist System
+## Phase 8 – Waitlist System
 
 - Implement Waitlist model with **queue position tracking**.
 - Allow joining/leaving waitlists.
@@ -83,7 +84,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 9 – Notification Service
+## Phase 9 – Notification Service
 
 - Integrate Celery workers for async tasks.
 - Create email templates (booking confirmation, cancellations, waitlist).
@@ -91,7 +92,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 10 – Admin Analytics
+## Phase 10 – Admin Analytics
 
 - Implement analytics service with reports:
   - Total bookings
@@ -102,7 +103,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 11 – Caching & Performance
+## Phase 11 – Caching and Performance
 
 - Integrate Redis for caching:
   - Event listings
@@ -113,7 +114,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 12 – Error Handling & Validation
+## Phase 12 – Error Handling and Validation
 
 - Define custom exceptions (e.g., `BookingCapacityExceededError`).
 - Add global error handler with JSON responses.
@@ -122,7 +123,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 13 – Integration & Concurrency Handling
+## Phase 13 – Integration and Concurrency Handling
 
 - Implement high-concurrency booking safety.
 - Add Redis distributed locks for seat holds.
@@ -131,7 +132,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 14 – API Documentation
+## Phase 14 – API Documentation
 
 - Enable **Swagger UI** and **ReDoc** via FastAPI.
 - Add schema validation examples.
@@ -140,7 +141,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 15 – Advanced Features
+## Phase 15 – Advanced Features
 
 - **Advanced Analytics** – Trends, predictions, retention metrics.
 - **Seat Recommendations** – Personalized seat suggestions.
@@ -151,7 +152,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## ✅ Phase 16 – Testing & QA
+## Phase 16 – Testing and QA
 
 - **Unit Tests** – services, models, utils.
 - **Integration Tests** – API flows, DB operations.
@@ -162,7 +163,7 @@ Each stage includes key tasks and implementation milestones.
 
 ---
 
-## 📈 Progress Tracking
+## Progress Tracking
 
 - [x] Project setup & dependencies
 - [x] Database models

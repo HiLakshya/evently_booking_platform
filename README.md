@@ -1,112 +1,121 @@
-# Evently Booking Platform 🎟️
+# Evently Booking Platform
 
-A **scalable event booking backend** built with **FastAPI + PostgreSQL**, designed to handle high-concurrency ticketing scenarios, prevent overselling, and provide real-time analytics for organizers.
+Evently is a production-grade event booking backend built with FastAPI and PostgreSQL. It is designed for high concurrency, seat-level inventory, and real-time analytics.
 
-> This project was built as a solution to the Evently Challenge by [**@atlanhq**](https://github.com/atlanhq) .
+[![Watch the video](https://img.youtube.com/vi/TLd7vTm1N3c/0.jpg)](https://www.youtube.com/watch?v=TLd7vTm1N3c)
 
----
-## Demo
+Note: This project originated as a solution to the Evently Challenge by [@atlanhq](https://github.com/atlanhq).
 
-- 🎥 **YouTube Video**: [Watch Demo](https://youtu.be/TLd7vTm1N3c)
-- 🚀 **Live Deployment**: [Evently Booking Platform](https://evently-booking-platform-latest.onrender.com/)
+## Table of Contents
 
+- Introduction
+- Features
+- Architecture and Technology
+- Getting Started
+  - Prerequisites
+  - Installation
+  - Configuration
+  - Running Locally
+  - Docker
+- API Documentation
+- Documentation Index
+- Project Structure
+- Development
+- Testing
+- Deployment
+- Security
+- License
 
----
+## Introduction
 
-## 🚀 Features
+Evently implements a robust booking workflow with concurrency control to prevent overselling, including optimistic locking, distributed seat holds, and atomic capacity updates. It also provides an admin surface for event management and analytics.
 
-- **High-Concurrency Booking** – Optimistic locking & distributed seat management.
-- **Real-Time Availability** – Live seat capacity updates with Redis.
-- **User Management** – Secure registration, login (JWT), and profile.
-- **Event Management (Admin)** – Create, update, and manage events.
-- **Waitlist System** – Auto-notify users when tickets free up.
-- **Analytics Dashboard** – Revenue, bookings, and popularity stats.
-- **Seat Selection** – Interactive, seat-level booking.
-- **Dynamic Pricing** – Demand-based price adjustments.
-- **Notifications** – Email alerts for bookings, cancellations, and waitlist events.
+## Features
 
----
+- High-concurrency booking with optimistic locking and distributed locking
+- Real-time availability with Redis-backed caches and seat holds
+- User authentication and authorization with JWT
+- Admin event management (create, update, archive)
+- Waitlist with notifications when capacity frees up
+- Analytics endpoints for revenue and utilization
+- Seat selection and dynamic pricing (optional modules)
+- Email notifications for key booking lifecycle events
 
-## 🛠 Tech Stack
+## Architecture and Technology
 
-- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+)
-- **Database**: PostgreSQL + SQLAlchemy ORM
-- **Cache / Locks**: Redis
-- **Background Tasks**: Celery
-- **Auth**: JWT (with bcrypt)
-- **Testing**: pytest, coverage
-- **Code Quality**: Black, MyPy, pre-commit
+- Backend: FastAPI (Python 3.12+)
+- Database: PostgreSQL with SQLAlchemy ORM
+- Caching and Locks: Redis
+- Background Jobs: Celery
+- Authentication: JWT (bcrypt for password hashing)
+- Tooling: pytest, coverage, Black, MyPy, pre-commit
 
----
-
-## 📦 Quick Start
+## Getting Started
 
 ### Prerequisites
 
 - Python 3.12+
-- [uv](https://docs.astral.sh/uv/) (package manager)
+- uv (package manager): see [uv](https://docs.astral.sh/uv/)
 - PostgreSQL
 - Redis
 
-### Setup
+### Installation
 
 ```bash
-# Clone repository
 git clone <repo-url>
 cd evently-booking-platform
-
-# Install dependencies
 uv sync
-
-# Setup environment
-cp .env.example .env
-# Edit .env with your actual values (see .env.example for reference)
 ```
 
-### Run
+### Configuration
 
-#### Option 1: Direct Python
+Copy the example environment and fill required values:
+
+```bash
+cp .env.example .env
+```
+
+Required variables (see `.env.example` for the full list):
+
+- DATABASE_URL
+- REDIS_URL
+- SECRET_KEY
+- CELERY_BROKER_URL
+- CELERY_RESULT_BACKEND
+- SMTP_USERNAME, SMTP_PASSWORD (for email)
+
+### Running Locally
 
 ```bash
 uv run uvicorn evently_booking_platform.main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
-#### Option 2: Docker (Recommended)
-
-```bash
-# Development with hot reload
-docker-compose up
-
-# Production build
-docker-compose -f docker-compose.prod.yml up
-```
-
-API Docs available at:
+API documentation:
 
 - Swagger: [http://localhost:3000/docs](http://localhost:3000/docs)
 - ReDoc: [http://localhost:3000/redoc](http://localhost:3000/redoc)
 
----
+### Docker
 
-## 📂 Repository Structure
+Development with hot reload:
 
-```
-evently-booking-platform/
-├── evently_booking_platform/   # Core app (APIs, models, services, schemas, utils)
-├── tests/                      # Unit & integration tests
-├── scripts.py                  # Dev scripts
-├── docs/                       # Project documentation
-│   ├── CHALLENGE.md
-│   ├── ADMIN_GUIDE.md
-│   ├── API_DOCS.md
-│   ├── ADVANCED_FEATURES.md
-│   ├── DESIGN.md
-│   └── IMPLEMENTATION_PLAN.md
+```bash
+docker-compose up
 ```
 
----
+Production build:
 
-## 📑 Documentation
+```bash
+docker-compose -f docker-compose.prod.yml up
+```
+
+## API Documentation
+
+See the full reference in [API Documentation](miscellaneous/API_DOCUMENTATION.md).
+
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
+
+## Documentation Index
 
 - [Implementation Plan](miscellaneous/IMPLEMENTATION_PLAN.md)
 - [Admin Authentication Guide](miscellaneous/ADMIN_AUTHENTICATION_GUIDE.md)
@@ -114,89 +123,51 @@ evently-booking-platform/
 - [Advanced Features](miscellaneous/ADVANCED_FEATURES_DOCUMENTATION.md)
 - [System Design](miscellaneous/DESIGN.md)
 - [Deployment Guide](miscellaneous/DEPLOYMENT_GUIDE.md)
+- [External Project Notes (Google Doc)](https://docs.google.com/document/d/1U9_g87hdF3OtrGSYCXIQFcho26UjMy5P/edit)
 
----
+## Project Structure
 
-## System Design Overview
-
-![System Design Diagram](./miscellaneous/Design.png)
-
-## 🐳 Docker
-
-### Development Environment
-
-```bash
-# Start all services (app, db, redis, celery)
-docker-compose up
-
-# Start in background
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+```
+evently-booking-platform/
+├── evently_booking_platform/   # Core app (APIs, models, services, schemas, utils)
+├── tests/                      # Unit and integration tests
+├── scripts.py                  # Development scripts
+├── miscellaneous/              # Documentation and guides
+│   ├── IMPLEMENTATION_PLAN.md
+│   ├── ADMIN_AUTHENTICATION_GUIDE.md
+│   ├── API_DOCUMENTATION.md
+│   ├── ADVANCED_FEATURES_DOCUMENTATION.md
+│   ├── DESIGN.md
+│   └── DEPLOYMENT_GUIDE.md
 ```
 
-### Production Environment
-
-```bash
-# Build and run production containers
-docker-compose -f docker-compose.prod.yml up
-
-# Run in background
-docker-compose -f docker-compose.prod.yml up -d
-```
-
----
-
-## ⚡ Development
+## Development
 
 Common commands:
 
 ```bash
-# Start dev server
 python scripts.py start
 ```
 
----
+## Testing
 
-## 🔐 Environment Variables
+Planned test suites include unit, integration, and load testing. See `miscellaneous/IMPLEMENTATION_PLAN.md` for scope.
 
-Copy `.env.example` to `.env` and configure your values:
+## Deployment
 
-```bash
-cp .env.example .env
-# Edit .env with your actual values
-```
+Continuous delivery is provided via GitHub Actions with Docker images published to Docker Hub and automated rollouts on Render. See `miscellaneous/DEPLOYMENT_GUIDE.md` for details.
 
-**Required variables** (see `.env.example` for complete list):
+## Security
 
-- `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string
-- `SECRET_KEY` - Application secret key
-- `CELERY_BROKER_URL` - Celery broker URL
-- `CELERY_RESULT_BACKEND` - Celery result backend URL
-- `SMTP_USERNAME` - Email service username
-- `SMTP_PASSWORD` - Email service password
+- Run the container as a non-root user
+- Keep secrets in environment variables or secret managers
+- JWT tokens are short-lived by default
 
----
+## License
 
-## 📊 Testing (coming soon)
+MIT. See `LICENSE`.
 
-Includes:
+## Demo
 
-- Unit tests (models, services)
-- Integration tests (API flows, concurrency)
-- Load/concurrency testing
-
----
-
-## 📜 License
-
-[MIT](LICENSE)
-
----
-
-✨ **Evently** provides a robust foundation for real-world ticketing systems with **scalability, concurrency safety, and insightful analytics**.
+- Video: [https://youtu.be/TLd7vTm1N3c](https://youtu.be/TLd7vTm1N3c)
+- Live: [https://evently-booking-platform-latest.onrender.com/](https://evently-booking-platform-latest.onrender.com/)

@@ -1,19 +1,21 @@
-# 🛡️ Admin Authentication Guide
+# Admin Authentication Guide
 
-This guide explains how to authenticate as an **admin user** in the Evently Booking Platform.
+This document explains how to authenticate as an admin user and how admin authorization works in the Evently Booking Platform.
 
-The platform uses a **role-based authentication system**:
+The platform provides role-based access control (RBAC):
 
-- **Regular Users** – Can browse events, book tickets, and manage their bookings.
-- **Admin Users** – Have all user privileges **plus** the ability to manage events, view analytics, and access admin-only features.
+Live Swagger UI (production): [https://evently-booking-platform-latest.onrender.com/docs](https://evently-booking-platform-latest.onrender.com/docs)
 
-Admin status is controlled by the `is_admin` field in the **User** model.
+- Regular users: browse events, create and manage bookings
+- Admin users: all user privileges plus event management, analytics, and admin-only APIs
+
+Admin status is controlled by the `is_admin` field on the `User` model.
 
 ---
 
-## 🔑 Methods to Create Admin Users
+## Methods to Create Admin Users
 
-### 1. Using Provided Script (Recommended)
+### 1. Using the provided script (recommended)
 
 Run the admin creation script:
 
@@ -32,7 +34,7 @@ python create_admin_user.py list
 
 ---
 
-### 2. Via API + Database Update
+### 2. Via API and database update
 
 1. Register a user:
 
@@ -51,7 +53,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 
 ---
 
-### 3. Direct Database Insert
+### 3. Direct database insert
 
 Insert directly into the database (replace password hash):
 
@@ -72,7 +74,7 @@ VALUES (
 
 ---
 
-## 🔐 Authenticating as Admin
+## Authenticating as Admin
 
 1. **Login to get a token**:
 
@@ -118,7 +120,7 @@ curl -X POST http://localhost:3000/api/v1/events \
 
 ---
 
-## 🔒 Admin-Only Endpoints
+## Admin-only Endpoints
 
 - **Event Management**
 
@@ -144,7 +146,7 @@ curl -X POST http://localhost:3000/api/v1/events \
 
 ---
 
-## 🧪 Testing Admin Access
+## Testing Admin Access
 
 ### Using Postman
 
@@ -181,7 +183,7 @@ print(resp.json())
 
 ---
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 - **403 Forbidden** → Ensure `is_admin = true` in DB and token is valid.
 - **401 Unauthorized** → Token expired; login again.
@@ -189,7 +191,7 @@ print(resp.json())
 
 ---
 
-## 🔐 Security Best Practices
+## Security Best Practices
 
 - Use **strong passwords** and rotate regularly.
 - Enable **HTTPS** in production.

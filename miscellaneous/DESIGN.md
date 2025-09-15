@@ -1,10 +1,12 @@
-# 🏗️ System Design – Evently Booking Platform
+# System Design
 
-This document describes the **architecture, design principles, and data modeling** for Evently.
+This document describes the architecture, design principles, and data modeling for the Evently Booking Platform.
+
+Live Swagger UI (production): https://evently-booking-platform-latest.onrender.com/docs
 
 ---
 
-## 🎯 Design Principles
+## Design Principles
 
 - **Concurrency Safety** – Optimistic locking, row-level transactions, Redis locks.
 - **Scalability** – Horizontal scaling with load balancers + DB connection pooling.
@@ -14,7 +16,7 @@ This document describes the **architecture, design principles, and data modeling
 
 ---
 
-## 🏛️ High-Level Architecture
+## High-level Architecture
 
 ```mermaid
 graph TB
@@ -83,7 +85,7 @@ graph TB
 
 ---
 
-## 🔄 Concurrency Control Strategy
+## Concurrency Control Strategy
 
 1. **Database-level**
 
@@ -105,7 +107,7 @@ graph TB
 
 ---
 
-## 🗂️ Core Services
+## Core Services
 
 - **Event Service** → CRUD for events, search, filtering, capacity.
 - **Booking Service** → Create/cancel bookings, manage waitlist, concurrency safety.
@@ -115,7 +117,7 @@ graph TB
 
 ---
 
-## 🗄️ Entity Relationship Diagram (ERD)
+## Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -208,7 +210,7 @@ erDiagram
 
 ---
 
-## ⚠️ Error Handling Strategy
+## Error Handling Strategy
 
 - **Concurrency Errors** → Retry with exponential backoff.
 - **Business Logic Errors** → Validation errors with descriptive messages.
@@ -217,7 +219,7 @@ erDiagram
 
 ---
 
-## 📊 Monitoring & Observability
+## Monitoring and Observability
 
 **Metrics tracked**
 
@@ -234,4 +236,4 @@ erDiagram
 
 ---
 
-✅ This design ensures **correctness, scalability, and performance** even under heavy traffic.
+This design aims to ensure correctness, scalability, and performance under heavy traffic.
