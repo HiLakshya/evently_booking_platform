@@ -5,6 +5,13 @@ A **scalable event booking backend** built with **FastAPI + PostgreSQL**, design
 > This project was built as a solution to the Evently Challenge by [**@atlanhq**](https://github.com/atlanhq) .
 
 ---
+## Demo
+
+- 🎥 **YouTube Video**: [Watch Demo](https://youtu.be/TLd7vTm1N3c)
+- 🚀 **Live Deployment**: [Evently Booking Platform](https://evently-booking-platform-latest.onrender.com/)
+
+
+---
 
 ## 🚀 Features
 
